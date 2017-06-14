@@ -1,0 +1,210 @@
+{% extends "weixin/base_migrite.html" %}
+{% block content %}
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+<body>
+<h4>域名池设置</h4>
+
+<br>
+<br>
+<style>.readonly input{border:none}</style>
+<form class="form-horizontal" method="post" role="form">
+  <div class="form-group">
+    <label for="inputText" class="col-sm-1 control-label">域名池</label>
+    <div class="col-sm-2 control-label">
+      <input type="text" class="form-control" name="pool" id="pool" placeholder="Text input">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inputText" class="col-sm-1 control-label">大小</label>
+    <div class="col-sm-2 control-label">
+      <input type="text" class="form-control" name="count" id="count" placeholder="Text input">
+    </div>
+  </div>
+
+
+  <div class="form-group">
+    <label for="inputText" class="col-sm-1 control-label">备注</label>
+    <div class="col-sm-2 control-label">
+      <input type="text" class="form-control" name="remark" id="remark" placeholder="Text input">
+    </div>
+  </div>
+
+  <div class="form-group">
+      <div class="col-sm-offset-1 col-sm-2">
+        <div class="checkbox">
+          <label>
+            <input name="weixin" type="checkbox"> 微信
+          </label>
+        </div>
+      </div>
+  </div>
+
+  <div class="form-group">
+      <div class="col-sm-offset-1 col-sm-2">
+        <div class="checkbox">
+          <label>
+            <input name="qq" type="checkbox"> QQ
+          </label>
+        </div>
+      </div>
+  </div>
+
+
+  <div class="form-group">
+    <div class="col-sm-offset-1 col-sm-2">
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-1 col-sm-2">
+      <button type="button" class="btn btn-default" id='sum'>提交</button>
+      <!-- <button type="button" id="b2" style="visibility: hidden;"></button> -->
+
+    </div>
+  </div>
+
+</form>
+
+<table class="table table-striped">
+      <thead>
+        <tr>
+          <th>域名池</th>
+          <th>大小</th>
+          <th>时间</th>
+          <th>数量</th>
+          <th>QQ</th>
+          <th>微信</th>
+          <th>备注</th>
+          <th>操作</th>
+
+        </tr>
+      <tbody>
+      {% for last_value in last_ten %}
+
+      <tr> 
+      <td> 
+        <div class="readonly dvInput_{{last_value.pk}}"> {{ last_value.pool_name }} </div>
+      </td>
+
+      <td class="wei_st" > 
+
+      <input type="text" name="pool_name" value={{ last_value.pool_count }}  > 
+
+      </td>  
+
+      <td> {{ last_value.date_time }} </td>  
+      <td> {{ last_value.domain_count }} </td>  
+      <td> {{ last_value.qq_status }} </td>  
+      <td> {{ last_value.weixin_status }} </td>  
+      <td> 
+        <div class="readonly dvInput_{{last_value.pk}}">  {{ last_value.remark }}      </div>
+      </td>
+      <td> <button class='de_bu'>删除</button> <button class='de_up'>修改</button>  </td>    
+
+      {% endfor %}
+      </tbody>
+</table>
+
+
+<script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.js"></script>
+
+<script>
+
+$(document).ready(function(){
+
+        $("#sum").click(function(){
+        // i++;
+        var pool = $("#pool").val();
+        var count = $("#count").val();
+        var remark = $("#remark").val();
+        if($("input[name='weixin']").prop('checked')) {
+          var weixin_status = '1'
+        }else {
+          var weixin_status = '0'
+        }
+        if($("input[name='qq']").prop('checked')) {
+          var qq_status = '1'
+        }else {
+          var qq_status = '0'
+        }
+
+        console.log(weixin_status);
+        console.log(qq_status);
+
+        $.post("/domainpool_import/",{'pool':pool,'count':count,'remark':remark,'qq_status':qq_status,'weixin_status':weixin_status}, function(data){
+
+            console.log(data);
+            
+             // data = $.parseJSON(data); 
+             // if(data == 'OK') {
+                  
+             //    }
+
+            // console.log(data)
+        })
+        location.href = location.href;//自己刷新自己，防止提交空
+        // location.reload();
+      });
+
+      $.each($('.de_bu'), function(index, value) {
+        $('.de_bu').eq(index).on('click', function() {
+            
+              pool_name = $(this).parent().prev().prev().prev().prev().prev().prev().prev().find('div').text();
+              console.log(pool_name)
+              $.post("/drop_domain_pool/",{'pool_name':pool_name}, function(data){
+                
+                if(data == 'OK') {
+                  location.reload();
+                }
+
+                
+            })
+          // }
+        });
+      })
+
+    $.each($('.de_up'), function(index, value) {
+        $('.de_up').eq(index).on('click', function() {
+            
+              pool_count = $(this).parent().prev().prev().prev().prev().prev().prev().find('input').val();
+              pool_name = $(this).parent().prev().prev().prev().prev().prev().prev().prev().find('div').text();
+
+              console.log(pool_name,pool_count)
+              $.post("/updata_count/",{'pool_count':pool_count,'pool_name':pool_name}, function(data){
+                
+                if(data == 'OK') {
+                  location.reload();
+                }
+            })
+          // }
+        });
+      })
+      
+});
+
+//   $.each($('.wei_st'), function(index, value) {
+//     // console.log(index);
+//     // console.log($('.wei_st').eq(index).text().indexOf(1))
+//     if($('.wei_st').eq(index).text().indexOf('-1') != -1){
+//         $('.wei_st').eq(index).css("color", "red").text("被封");
+//     }
+//     else if($('.wei_st').eq(index).text().indexOf('1') != -1){
+//         $('.wei_st').eq(index).css("color", "green").text("正常");
+//     }
+//     else {
+//         $('.wei_st').eq(index).css("color", "red").text("异常");
+//     }
+// })
+
+ </script>
+</body>
+</html>
+{% endblock %}
+
+
+
+

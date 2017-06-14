@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+# coding: utf-8
+import mysql_config as cfg
+import pymysql
+import sys
+import time
+import pickle
+import os
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+import django
+
+# sys.path.append('/Users/admin/python/wxpy/wx')
+# os.environ['DJANGO_SETTINGS_MODULE'] = 'wx.settings'
+
+pathname = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, pathname)
+sys.path.insert(0, os.path.abspath(os.path.join(pathname, '../../')))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wx.settings")
+
+django.setup()
+
+#----------------Use Django Mysql model----------------
+from wxbot.models import *
+
+"""
+功能说明：
+1. 用户无需发送关键词，添加好友后，自动发送邀请消息
+2. 添加好友后，会自动发送回复语（下方可修改）
+3. 用户进群后，自动发送相关的邀请信息。
+"""
+"""
+定义区，下方数据修改为你自己对应的内容
+"""
+# 欢迎语，{} 会变成新入群用户的昵称
+welcome_text = '''🎉 欢迎 @{} 的加入！
+😃 有问题请私聊 @毕锐
+'''
+
+# 回复语，在发送群邀请后会回复这个
+reply_text = """你好，欢迎加入‘coohua测试’
+群规是。。。。。。
+"""
+
+# 群名
+group_name = 'coohua测试'
+
+"""
+代码区，下方的内容不要修改
+"""
+from wxpy import *
+import re
+# False
+bot = Bot('bot.pkl', console_qr=False)
+# bot2 = Bot('bot2.pkl', console_qr=False)
+target_group = bot.groups().search(group_name)[0]
+# target_group = bot2.groups().search(group_name)[0]
+
+# 群成员个数
+print(len(target_group))
+
+'''
+邀请消息处理
+'''
+
+
+def get_new_member_name(msg):
+    # itchat 1.2.32 版本未格式化群中的 Note 消息
+    from itchat.utils import msg_formatter
+    msg_formatter(msg.raw, 'Text')
+
+    for rp in rp_new_member_name:
+        match = rp.search(msg.text)
+        if match:
+            return match.group(1)
+
+
+'''
+邀请信息处理
+'''
+rp_new_member_name = (
+    re.compile(r'^"(.+)"通过'),
+    re.compile(r'邀请"(.+)"加入'),
+)
+
+'''
+处理加好友请求信息。
+如果验证信息文本是字典的键值之一，则尝试拉群。
+'''
+
+# 自动接收好友请求
+
+
+@bot.register(msg_types=FRIENDS)  # 注册好友请求消息
+def new_friends(msg):
+    user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
+    target_group.add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
+    user.send(reply_text)
+
+# 加群ls
+#
+
+
+@bot.register(target_group, NOTE)
+def send_msg(group_msg):
+    # 上次发公告时间
+    time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    conn = pymysql.connect(host=cfg.mysql['host'], user=cfg.mysql['user'], passwd=cfg.mysql['passwd'], db=cfg.mysql['db'], port=cfg.mysql['port'], charset="utf8")
+    cur = conn.cursor()
+    if os.path.exists('last_time.pkl'):
+        pkl_file = open('last_time.pkl', 'rb')
+        last_time_dic = pickle.load(pkl_file)
+        last_time = last_time_dic['last_time']
+        sql = "select count(*) from wx_user where create_time > '{0}';" .format(last_time)
+        cur.execute(sql)
+        count_users = cur.fetchall()[0][0]
+        print('======>', count_users, '=======', last_time, '----', sql)
+        # 上次发公告以来如果有7个新人进群就再发一次公告
+        # print('send msg!!!===>{0}' .format(last_time))
+        if int(count_users) > 7:
+            print('send msg!!!!===>{0}' .format(last_time))
+            target_group.send('公告：{0}' .format(group_msg))  # 发送信息到群
+            # 发完公告改时间
+            # last_time['last_time'] = time_tamp
+            # pickle.dump(last_time, pkl_file)
+
+    else:
+        last_time = {'last_time': time_tamp}
+        pkl_file = open('last_time.pkl', 'wb')
+        pickle.dump(last_time, pkl_file)
+
+    pkl_file.close()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# 定时任务
+
+
+@bot.register(target_group, NOTE)
+def tick():
+    target_group.send('Tick! The time is: %s' % datetime.now())
+    print(datetime.now())
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(tick, 'cron', day_of_week='0-6', minute='*/2')
+scheduler.start()
+
+
+@bot.register(target_group, NOTE)
+def welcome(msg):
+    name = get_new_member_name(msg)
+    if name:
+        # 将刚刚入群的用户添加到数据库
+        conn = pymysql.connect(host=cfg.mysql['host'], user=cfg.mysql['user'], passwd=cfg.mysql['passwd'], db=cfg.mysql['db'], port=cfg.mysql['port'], charset="utf8")
+        cur = conn.cursor()
+        # print(type(name), type(group_name))
+        group_owner = bot
+        sql1 = "insert into wx_user(name, group_name, group_own) values('{0}', '{1}','{2}') ;" .format(name, group_name, group_owner)
+        cur.execute(sql1)
+        # domain = cur.fetchall()
+        # 1.如果达到60人一个群则自动建群
+        # 2.如果新人达到7个就发一次公告
+        send_msg('新人达到7：讨厌！讨厌----公告test')
+        conn.commit()
+        cur.close()
+        conn.close()
+        # 发送欢迎信息
+        return welcome_text.format(name)
+
+# target_group.send('Hello, WeChat!') 发送信息到群
+
+#======多开=====
+
+#
+# @bot2.register(msg_types=FRIENDS)  # 注册好友请求消息
+# def new_friends(msg):
+#     user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
+#     target_group.add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
+#     user.send(reply_text)
+#
+#
+# @bot2.register(target_group, NOTE)
+# def welcome(msg):
+#     name = get_new_member_name(msg)
+#     if name:
+#         return welcome_text.format(name)
+
+
+embed()
