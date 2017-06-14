@@ -25,7 +25,9 @@ SECRET_KEY = 'cfuunv@(==@38f^jw_)s9z*yyy+ommrqyh%nl8)ih4fyc=_#!l'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+'wxtool.coohua.com',
+]
 
 
 # Application definition
