@@ -94,6 +94,7 @@ DATABASES = {
          'OPTIONS': {
            'autocommit': True,
            'read_default_file': os.path.join(BASE_DIR, "wx/my.cnf"),
+           'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
          },
     }
 }

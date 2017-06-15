@@ -33,4 +33,4 @@ wx/scripts/*
 tmp.txt
 media/*
 *_config.py
-wx/migrations/*
+wxbot/migrations/*
