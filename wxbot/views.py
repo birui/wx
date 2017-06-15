@@ -58,6 +58,9 @@ def wx_img_turn(request):
     for i in group_by:
         if i['dcount'] < 20:
             limit_210.append(i['group_own'])
+        elif not i['dcount']:
+            limit_210.append(i['group_own'])
+
 
     if limit_210:
         img_d = Wx_account.objects.filter(wx_name=limit_210[0]).values('img_url')

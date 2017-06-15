@@ -30,7 +30,7 @@ class Wx_group_show(admin.ModelAdmin):
 
 class Cron_msg_show(admin.ModelAdmin):
     #显示字段
-    list_display = ('msg_name','msg_group', 'msg_content')
+    list_display = ('msg_name','msg_group', 'msg_content','msg_type')
     #指定列表过滤器,页面右边
     list_filter = ('msg_group',)
     # 指定要搜索的字段

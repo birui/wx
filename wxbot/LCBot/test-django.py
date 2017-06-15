@@ -4,6 +4,9 @@ import os
 import django
 import time
 from datetime import datetime
+from datetime import date
+from django.db.models import Count
+import random
 
 
 # sys.path.append('/Users/admin/python/wxpy/wx')
@@ -96,7 +99,25 @@ def reply_text(wx_own):
     print(user_msg)
 
 
-group_name('Enchanting')
-# reply_text('Enchanting')
+#
+# end_time = Wx_group.objects.filter(group_name='coohua测试').values('end_time')
+# print(end_time[0]['end_time'])
+# test = range(1, 20)
+# print(random.choice(test))
+def reply_text(wx_own):
+    group_Welcome = Cron_msg.objects.filter(msg_group='coohua测试').values('msg_content')
+    id_list = []
+    for i in group_Welcome:
+        id_list.append(i['msg_content'])
+    return(random.choice(id_list))
 
-# print(aaa)
+
+def group_Welcome(g_name):
+    group_Welcome = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
+    id_list = []
+    for i in group_Welcome:
+        id_list.append(i['msg_content'])
+    return(random.choice(id_list))
+
+
+print(group_Welcome('coohua测试'))

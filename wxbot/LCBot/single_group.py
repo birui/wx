@@ -9,6 +9,7 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import django
+import random
 pathname = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, pathname)
 sys.path.insert(0, os.path.abspath(os.path.join(pathname, '../../')))
@@ -52,18 +53,25 @@ def reply_text(wx_own):
 # reply_text = reply_text(wx_user)
 
 '''
-群内欢迎语：
+随机群内欢迎语：
 '''
 
 
-def group_Welcome(g_name):
-    group_msg = Wx_group.objects.filter(group_name=g_name).values('Welcome')
-    for i in group_msg:
-        msg_gw = i['Welcome']
-    return msg_gw
+# def group_Welcome(g_name):
+#     group_msg = Wx_group.objects.filter(group_name=g_name).values('Welcome')
+#     for i in group_msg:
+#         msg_gw = i['Welcome']
+#     return msg_gw
 
+def group_Welcome(g_name):
+    group_Welcome = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
+    id_list = []
+    for i in group_Welcome:
+        id_list.append(i['msg_content'])
+    return(random.choice(id_list))
 
 # welcome_text = group_Welcome(group_name(wx_user))
+
 
 def welcome_text():
     welcome_text = group_Welcome(group_name(wx_user))
@@ -212,57 +220,80 @@ def welcome(msg):
 
 @bot.register(target_group(), NOTE)
 def tick_18():
-    end_time = Wx_group.objects.filter(group_name=g_name).values('end_time')
-    if not end_time:
+    # print('tick_18')
+    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+    if end_time[0]['end_time'] is None:
         if len(target_group()) >= 80:
-            notice_msg = Cron_msg.objects.filter(msg_name='tick_18', msg_group='cron').values('msg_content')
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_18').values('msg_content', 'msg_type').order_by('id')
             # target_group().send('1.==>Tick! The time is: %s' % datetime.now())
-            target_group().send(notice_msg)
+            # target_group().send(notice_msg)
+            # print(notice_msg)
+            for i in notice_msg:
+                if i['msg_type'] == 'img':
+                    target_group().send_image(i['msg_content'])
+                    # print(i['msg_content'])
+                elif i['msg_type'] == 'txt':
+                    target_group().send(i['msg_content'])
+                    # print(i['msg_content'])
 
 
 scheduler_18 = BackgroundScheduler()
-scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', hour='18', minute='0')
+scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', hour='18', minute='00')
+# scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', minute='*/1')
 scheduler_18.start()
 # 19点发送话术2
 
 
 @bot.register(target_group(), NOTE)
 def tick_19():
-    end_time = Wx_group.objects.filter(group_name=g_name).values('end_time')
-    if not end_time:
-        # target_group().send('2.==>Tick! The time is: %s' % datetime.now())
-        notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
-        target_group().send(notice_msg)
+    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+    if end_time[0]['end_time'] is None:
+        #notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
+        notice_msg = Cron_msg.objects.filter(msg_group='tick_19').values('msg_content', 'msg_type').order_by('id')
+        # target_group().send(notice_msg)
+        for i in notice_msg:
+            if i['msg_type'] == 'img':
+                target_group().send_image(i['msg_content'])
+                # print(i['msg_content'])
+            elif i['msg_type'] == 'txt':
+                target_group().send(i['msg_content'])
 
 
 scheduler_19 = BackgroundScheduler()
-scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='18', minute='0')
+scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='19', minute='00')
+# scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', minute='*/1')
 scheduler_19.start()
 
 
 # 定时2： 到19：40若群有80人则记录群结束，并记录“结束时间”，并发送话术1，若不足80发送话术2并设置结束。
 @bot.register(target_group(), NOTE)
 def tick_19_40():
-    end_time = Wx_group.objects.filter(group_name=g_name).values('end_time')
-    if not end_time:
+    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+    if end_time[0]['end_time'] is None:
         time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if len(target_group()) >= 80:
-            # target_group().send('1.==>Tick! The time is: %s' % datetime.now())
-            notice_msg = Cron_msg.objects.filter(msg_name='tick_19_40_1', msg_group='cron').values('msg_content')
-            target_group().send(notice_msg)
-            insertdata = Wx_group(end_time=time_tamp)  # 入库
-            insertdata.save()
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_1').values('msg_content', 'msg_type').order_by('id')
+            for i in notice_msg:
+                if i['msg_type'] == 'img':
+                    target_group().send_image(i['msg_content'])
+                elif i['msg_type'] == 'txt':
+                    target_group().send(i['msg_content'])
+            Wx_group.objects.filter(group_name=group_name(wx_user)).update(end_time=time_tamp)
         else:
-            # target_group().send('2.==>Tick! The time is: %s' % datetime.now())
-            notice_msg = Cron_msg.objects.filter(msg_name='tick_19_40_2', msg_group='cron').values('msg_content')
-            target_group().send(notice_msg)
-            insertdata = Wx_group(end_time=time_tamp)  # 入库
-            insertdata.save()
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_2').values('msg_content', 'msg_type').order_by('id')
+            for i in notice_msg:
+                if i['msg_type'] == 'img':
+                    target_group().send_image(i['msg_content'])
+                    # print(i['msg_content'])
+                elif i['msg_type'] == 'txt':
+                    target_group().send(i['msg_content'])
+            Wx_group.objects.filter(group_name=group_name(wx_user)).update(end_time=time_tamp)
         # print(target_group(), datetime.now())
 
 
 scheduler_19_40 = BackgroundScheduler()
-scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', hour='18', minute='10')
+scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', hour='19', minute='40')
+# scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', minute='*/1')
 scheduler_19_40.start()
 
 # 定时3：群结束后，每天8点发推送连续18天
@@ -270,26 +301,33 @@ scheduler_19_40.start()
 
 @bot.register(target_group(), NOTE)
 def tick_20_18():
-    end_time = Wx_group.objects.filter(group_name='test5').values('end_time')
-    if end_time:
+    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+    if end_time is not None:
         end_time_str = str(end_time[0]['end_time'])
-        end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S.%f")
+        end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
         end_timeStamp = int(time.mktime(end_timeArray))
 
         local_time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         local_timeArray = time.strptime(local_time_tamp, "%Y-%m-%d %H:%M:%S")
         local_timeStamp = int(time.mktime(local_timeArray))
 
-        if int(local_timeStamp - end_timeStamp) > 86400:
+        if int(local_timeStamp - end_timeStamp) >= 86400:
             nu_dt = int(int(local_timeStamp - end_timeStamp) / 86400) - 1
             if 0 <= nu_dt <= 18:
-                end_msg = Cron_msg.objects.filter(msg_name='%dday' % nu_dt, msg_group='18day_msg').values('msg_content')
+                end_msg = Cron_msg.objects.filter(msg_group='%dday' % nu_dt).values('msg_content', 'msg_type').order_by('id')
                 # print(end_msg[0]['msg_content'])
+                for i in end_msg:
+                    if i['msg_type'] == 'img':
+                        target_group().send_image(i['msg_content'])
+                        # print(i['msg_content'])
+                    elif i['msg_type'] == 'txt':
+                        target_group().send(i['msg_content'])
                 target_group().send(end_msg[0]['msg_content'])
 
 
 scheduler_20_18 = BackgroundScheduler()
-scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='18', minute='10')
+scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='20', minute='00')
+# scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', minute='*/1')
 scheduler_20_18.start()
 
 
