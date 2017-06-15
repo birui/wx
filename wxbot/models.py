@@ -46,6 +46,6 @@ class Cron_msg(models.Model):
     msg_name = models.CharField(max_length=20)
     msg_group = models.CharField(max_length=200,blank=True,null=True)
     msg_content = models.TextField(blank=True, null=True)
-    msg_type = models.CharField(max_length=20,blank=True, null=True)
+    msg_type = models.CharField(max_length=20,default='txt')
     def __str__(self):
         return str(self.id)
