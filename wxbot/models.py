@@ -25,6 +25,8 @@ class Wx_account(models.Model):
     friend_count = models.IntegerField(blank=True,null=True,default=0)
     img_url = models.CharField(max_length=500)
     Welcome = models.TextField(blank=True, null=True)
+    #0下线 1上线
+    online = models.IntegerField(blank=True,null=True)
     def __unicode__(self):
         return str(self.id)
 #微信群

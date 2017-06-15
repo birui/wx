@@ -46,32 +46,34 @@ def wxgroup_check(request):
         data_v.save()
     return HttpResponse('OK')
 
-#二维码轮换http://127.0.0.1:8000/wxbot/wx_img/
 def wx_img_turn(request):
-
     today = date.today()
-    #今天的加群的用户总数
-    count_users = Group_user.objects.filter(group_time__year= today.year,group_time__month=today.month,group_time__day=today.day).values('group_own').count()
-    #SELECT group_own, COUNT(user_name) AS dcount FROM Group_user GROUP BY group_own
-    group_by = Group_user.objects.filter(group_time__year= today.year,group_time__month=today.month,group_time__day=today.day).values('group_own').annotate(dcount=Count('user_name'))
-    limit_210 = []
-    for i in group_by:
-        if i['dcount'] < 20:
-            limit_210.append(i['group_own'])
-        elif not i['dcount']:
-            limit_210.append(i['group_own'])
+    # 可用微信
+    try:
+        Wx = Wx_account.objects.filter(online=1).values('wx_name')
+        wx_name = []
+        for i in Wx:
+            wx_name.append(i['wx_name'])
+        # 当天不到210用户的微信
+        wx_210 = []
+        for j in wx_name:
+            count_users = Group_user.objects.filter(group_own=j, group_time__year=today.year, group_time__month=today.month, group_time__day=today.day).values('group_own').count()
+            if int(count_users) < 210:
+                wx_210.append(j)
+        # print(count_users, wx_210)
+        img_d = Wx_account.objects.filter(wx_name=wx_210[0]).values('img_url')
+        print(wx_210[0])
 
-
-    if limit_210:
-        img_d = Wx_account.objects.filter(wx_name=limit_210[0]).values('img_url')
-        # img_url = serializers.serialize("json",  Wx_account.objects.all())
-        for i in img_d:
-            img_d = i['img_url']
-        document_root = settings.BASE_DIR
-        print(document_root)
-        image_data = open("%s/wxbot/static/weixin/img/%s" %(document_root,img_d), "rb").read()
-        return HttpResponse(image_data, content_type="image/png")
-    else:
-        return HttpResponse('没有可用微信了!!')
+        if wx_210:
+            for i in img_d:
+                img_d = i['img_url']
+                document_root = settings.BASE_DIR
+                print(document_root)
+                image_data = open("%s/wxbot/static/weixin/img/%s" %(document_root,img_d), "rb").read()
+                return HttpResponse(image_data, content_type="image/png")
+        else:
+            return HttpResponse('没有可用微信了!!')
+    except Exception as  e:
+        return HttpResponse('出错了,没有可用微信了!!')
 
 

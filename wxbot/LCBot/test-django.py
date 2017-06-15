@@ -120,4 +120,25 @@ def group_Welcome(g_name):
     return(random.choice(id_list))
 
 
-print(group_Welcome('coohua测试'))
+today = date.today()
+# # print(group_Welcome('coohua测试'))
+# group_by = Group_user.objects.filter(group_time__year=today.year, group_time__month=today.month, group_time__day=today.day).values('group_own').order_by('id')
+# print(group_by)
+
+
+def wx_img_turn():
+    # 可用微信
+    Wx = Wx_account.objects.filter(online=1).values('wx_name')
+    wx_name = []
+    for i in Wx:
+        wx_name.append(i['wx_name'])
+    # 当天不到210用户的微信
+    wx_210 = []
+    for j in wx_name:
+        count_users = Group_user.objects.filter(group_own=j, group_time__year=today.year, group_time__month=today.month, group_time__day=today.day).values('group_own').count()
+        if int(count_users) < 210:
+            wx_210.append(j)
+    print(count_users, wx_210)
+
+
+wx_img_turn()
