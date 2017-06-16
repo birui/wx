@@ -74,8 +74,8 @@ def group_Welcome(g_name):
 
 
 def welcome_text():
-    welcome_text = group_Welcome(group_name(wx_user))
-    return welcome_text
+    welcome_t = group_Welcome(group_name(wx_user))
+    return welcome_t
 
 
 # bot2 = Bot('bot2.pkl', console_qr=False)
@@ -160,7 +160,7 @@ def send_msg(group_msg):
         last_time = last_time_dic['last_time']
         count_users = Group_user.objects.filter(group_time__gt=time_tamp).count()
 
-        print('======>', count_users, '=======', last_time)
+        # print('======>', count_users, '=======', last_time)
         # 上次发公告以来如果有7个新人进群就再发一次公告
         # print('send msg!!!===>{0}' .format(last_time))
         if int(count_users) >= 7 and len(target_group()) >= 30:
@@ -218,7 +218,6 @@ def welcome(msg):
 # 定时1： 18点人群大于50发送话术1，19点发送话术2 #如果不到50人？
 
 
-@bot.register(target_group(), NOTE)
 def tick_18():
     # print('tick_18')
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
@@ -244,7 +243,6 @@ scheduler_18.start()
 # 19点发送话术2
 
 
-@bot.register(target_group(), NOTE)
 def tick_19():
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
@@ -266,7 +264,6 @@ scheduler_19.start()
 
 
 # 定时2： 到19：40若群有80人则记录群结束，并记录“结束时间”，并发送话术1，若不足80发送话术2并设置结束。
-@bot.register(target_group(), NOTE)
 def tick_19_40():
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
@@ -299,30 +296,32 @@ scheduler_19_40.start()
 # 定时3：群结束后，每天8点发推送连续18天
 
 
-@bot.register(target_group(), NOTE)
 def tick_20_18():
-    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
-    if end_time is not None:
-        end_time_str = str(end_time[0]['end_time'])
-        end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-        end_timeStamp = int(time.mktime(end_timeArray))
+    try:
+        end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+        if end_time is not None:
+            end_time_str = str(end_time[0]['end_time'])
+            end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+            end_timeStamp = int(time.mktime(end_timeArray))
 
-        local_time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        local_timeArray = time.strptime(local_time_tamp, "%Y-%m-%d %H:%M:%S")
-        local_timeStamp = int(time.mktime(local_timeArray))
+            local_time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            local_timeArray = time.strptime(local_time_tamp, "%Y-%m-%d %H:%M:%S")
+            local_timeStamp = int(time.mktime(local_timeArray))
 
-        if int(local_timeStamp - end_timeStamp) >= 86400:
-            nu_dt = int(int(local_timeStamp - end_timeStamp) / 86400) - 1
-            if 0 <= nu_dt <= 18:
-                end_msg = Cron_msg.objects.filter(msg_group='%dday' % nu_dt).values('msg_content', 'msg_type').order_by('id')
-                # print(end_msg[0]['msg_content'])
-                for i in end_msg:
-                    if i['msg_type'] == 'img':
-                        target_group().send_image(i['msg_content'])
-                        # print(i['msg_content'])
-                    elif i['msg_type'] == 'txt':
-                        target_group().send(i['msg_content'])
-                target_group().send(end_msg[0]['msg_content'])
+            if int(local_timeStamp - end_timeStamp) >= 86400:
+                nu_dt = int(int(local_timeStamp - end_timeStamp) / 86400) - 1
+                if 0 <= nu_dt <= 18:
+                    end_msg = Cron_msg.objects.filter(msg_group='%dday' % nu_dt).values('msg_content', 'msg_type').order_by('id')
+                    # print(end_msg[0]['msg_content'])
+                    for i in end_msg:
+                        if i['msg_type'] == 'img':
+                            target_group().send_image(i['msg_content'])
+                            # print(i['msg_content'])
+                        elif i['msg_type'] == 'txt':
+                            target_group().send(i['msg_content'])
+                    target_group().send(end_msg[0]['msg_content'])
+    except Exception as e:
+        print('出错了!! %s' % e)
 
 
 scheduler_20_18 = BackgroundScheduler()
