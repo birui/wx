@@ -319,7 +319,7 @@ def tick_20_18():
                             # print(i['msg_content'])
                         elif i['msg_type'] == 'txt':
                             target_group().send(i['msg_content'])
-                    target_group().send(end_msg[0]['msg_content'])
+                    # target_group().send(end_msg[0]['msg_content'])
     except Exception as e:
         print('出错了!! %s' % e)
 
@@ -329,6 +329,27 @@ scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='20', minute
 # scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', minute='*/1')
 scheduler_20_18.start()
 
+
+my_friend = ensure_one(bot.search(group_name(wx_user)))
+tuling = Tuling(api_key='1996a93aebba489baed8346239c6111f')
+
+# 使用图灵机器人自动与指定好友聊天
+
+
+# @bot.register(my_friend)
+# def reply_my_friend(msg):
+#     tuling.do_reply(msg)
+
+
+@bot.register(my_friend, TEXT)
+def auto_reply(msg):
+    # 如果是群聊，但没有被 @，则不回复
+    if isinstance(msg.chat, Group) and not msg.is_at:
+        return
+    else:
+        # 回复消息内容和类型
+        # return '收到消息: {} ({})'.format(msg.text, msg.type)
+        tuling.do_reply(msg)
 
 # target_group.send('Hello, WeChat!') 发送信息到群
 
