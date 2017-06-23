@@ -25,7 +25,7 @@ bot = Bot('bot.pkl', console_qr=False)
 '''
 开启 PUID 用于后续的控制
 '''
-local_puid = bot.enable_puid()
+bot.enable_puid('wxpy_puid.pkl')
 
 # 获取当前用户
 wx_user = str(bot)[6:-1]
@@ -146,7 +146,9 @@ def new_friends(msg):
     user_sex = user.sex
     user_province = user.province
     user_city = user.city
-    user_puid = local_puid
+    # user_puid = bot.friends().search(user_data)[0].puid
+    user_puid = user.puid
+    print(user_puid)
     insertdata = Group_user(user_name=user_data, user_sex=user_sex, user_province=user_province, user_city=user_city, puid=user_puid)  # 入库
     insertdata.save()
     user.send(reply_text(wx_user))
