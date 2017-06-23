@@ -4,7 +4,7 @@ from wxbot.models import *
 # Register your models here.
 class Group_user_show(admin.ModelAdmin):
     #显示字段
-    list_display = ('user_name','group_name', 'group_own','group_time','friend_time')
+    list_display = ('user_name','user_sex','user_province','user_city','group_name', 'group_own','group_time','friend_time','puid')
     #指定列表过滤器,页面右边
     list_filter = ('group_name',)
     # 指定要搜索的字段

@@ -10,10 +10,14 @@ from datetime import datetime
 #好友表
 class Group_user(models.Model):
     user_name = models.CharField(max_length=200)
+    user_sex = models.IntegerField(blank=True,null=True,default=0)
+    user_province = models.CharField(max_length=200,blank=True,null=True,)
+    user_city = models.CharField(max_length=200,blank=True,null=True,)
     group_name = models.CharField(max_length=200)
     group_own = models.CharField(max_length=200)
     group_time = models.DateTimeField(blank=True,null=True)
     friend_time = models.DateTimeField(auto_now_add = True)
+    puid = models.CharField(max_length=100,blank=True,null=True,)
 
     def __unicode__(self):
         return str(self.id)

@@ -22,6 +22,11 @@ import re
 # False
 bot = Bot('bot.pkl', console_qr=False)
 
+'''
+开启 PUID 用于后续的控制
+'''
+bot.enable_puid()
+
 # 获取当前用户
 wx_user = str(bot)[6:-1]
 print(wx_user)
@@ -137,17 +142,18 @@ def new_friends(msg):
     group_owner = bot
     user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
     target_group().add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
-    # print(type(user))
-
-    # user_data = str(user)[8:-1]
     user_data = str(user)[9:-1].replace('\r', '').replace('\n', '').replace('\t', '').replace(' ', '')
-    print(user_data)
-    insertdata = Group_user(user_name=user_data)  # 入库
+    user_sex = user.sex
+    user_province = user.province
+    user_city = user.city
+    my_friend = bot.friends().search(user_data)[0]
+    user_puid = my_friend.puid
+    insertdata = Group_user(user_name=user_data, user_sex=user_sex, user_province=user_province, user_city=user_city, puid=user_puid)  # 入库
     insertdata.save()
     user.send(reply_text(wx_user))
+    print(my_friend.puid)
 
-# 加群ls
-#
+# 加群
 
 
 @bot.register(target_group(), NOTE)
@@ -183,12 +189,14 @@ def send_msg(group_msg):
 @bot.register(target_group(), NOTE)
 def welcome(msg):
     name = get_new_member_name(msg)
+    my_friend = bot.friends().search(name)[0]
+    puid_nu = my_friend.puid
     time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     if name:
         # 将刚刚入群的用户添加到数据库
         group_owner = str(bot)[6:-1]
         # group_name = group_name(wx_user)
-        Group_user.objects.filter(user_name=name).update(group_name=group_name(wx_user), group_own=group_owner, group_time=time_tamp)
+        Group_user.objects.filter(puid=puid_nu).update(group_name=group_name(wx_user), group_own=group_owner, group_time=time_tamp)
 
         # 1.如果达到60人一个群则自动建群
         # 2.如果新人达到7个就发一次公告
