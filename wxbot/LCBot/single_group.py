@@ -25,7 +25,7 @@ bot = Bot('bot.pkl', console_qr=False)
 '''
 开启 PUID 用于后续的控制
 '''
-bot.enable_puid()
+local_puid = bot.enable_puid()
 
 # 获取当前用户
 wx_user = str(bot)[6:-1]
@@ -143,16 +143,13 @@ def new_friends(msg):
     user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
     target_group().add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
     user_data = str(user)[9:-1].replace('\r', '').replace('\n', '').replace('\t', '').replace(' ', '')
-    print(user, user_data)
     user_sex = user.sex
     user_province = user.province
     user_city = user.city
-    my_friend = bot.friends().search(user_data)[0]
-    user_puid = my_friend.puid
+    user_puid = local_puid
     insertdata = Group_user(user_name=user_data, user_sex=user_sex, user_province=user_province, user_city=user_city, puid=user_puid)  # 入库
     insertdata.save()
     user.send(reply_text(wx_user))
-    print(my_friend.puid)
 
 # 加群
 
