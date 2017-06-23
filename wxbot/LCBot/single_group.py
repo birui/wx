@@ -143,6 +143,7 @@ def new_friends(msg):
     user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
     target_group().add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
     user_data = str(user)[9:-1].replace('\r', '').replace('\n', '').replace('\t', '').replace(' ', '')
+    print(user, user_data)
     user_sex = user.sex
     user_province = user.province
     user_city = user.city
