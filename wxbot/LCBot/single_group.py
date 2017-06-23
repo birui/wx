@@ -200,21 +200,6 @@ def welcome(msg):
 
 # 定时任务
 
-
-# @bot.register(target_group(), NOTE)
-# def tick():
-#     if len(target_group()) >= 80:
-#         target_group().send('1.==>Tick! The time is: %s' % datetime.now())
-#     else:
-#         target_group().send('2.==>Tick! The time is: %s' % datetime.now())
-#     print(target_group(), datetime.now())
-#
-#
-# scheduler = BackgroundScheduler()
-# # scheduler.add_job(tick, 'cron', day_of_week='0-6', minute='*/2')
-# scheduler.add_job(tick, 'cron', day_of_week='0-6', hour='18', minute='10')
-# scheduler.start()
-
 # 定时1： 18点人群大于50发送话术1，19点发送话术2 #如果不到50人？
 
 
@@ -334,11 +319,6 @@ my_friend = ensure_one(bot.search(group_name(wx_user)))
 tuling = Tuling(api_key='1996a93aebba489baed8346239c6111f')
 
 # 使用图灵机器人自动与指定好友聊天
-
-
-# @bot.register(my_friend)
-# def reply_my_friend(msg):
-#     tuling.do_reply(msg)
 
 
 @bot.register(my_friend, TEXT)
