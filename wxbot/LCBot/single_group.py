@@ -19,6 +19,8 @@ django.setup()
 from wxbot.models import *
 from wxpy import *
 import re
+from wxpy.utils import start_new_thread
+
 # False
 bot = Bot('bot.pkl', console_qr=False)
 
@@ -42,7 +44,51 @@ def group_name(own):
         # print('group_name:', on_g_n)
     return on_g_n
 
+#######
 
+
+# 下方为函数定义
+
+def get_time():
+    return str(time.strftime("%Y-%m-%d %H:%M:%S"))
+
+
+'''
+机器人消息提醒设置
+'''
+group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
+logger = get_wechat_logger(group_receiver)
+logger.error(str("机器人登陆成功！" + get_time()))
+
+'''
+重启机器人
+'''
+
+
+def _restart():
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
+'''
+定时报告进程状态
+'''
+
+
+def heartbeat():
+    while bot.alive:
+        time.sleep(3600)
+        # noinspection PyBroadException
+        try:
+            logger.error(get_time() + " 机器人目前在线,共有好友 【" + str(len(bot.friends())) + "】 群 【 " + str(len(bot.groups())) + "】")
+        except ResponseError as e:
+            if 1100 <= e.err_code <= 1102:
+                logger.critical('LCBot offline: {}'.format(e))
+                _restart()
+
+
+start_new_thread(heartbeat)
+
+#######
 '''
 入群邀请语：
 '''
@@ -148,7 +194,7 @@ def new_friends(msg):
     user_city = user.city
     # user_puid = bot.friends().search(user_data)[0].puid
     user_puid = user.puid
-    print(user_puid)
+    # print(user_puid)
     insertdata = Group_user(user_name=user_data, user_sex=user_sex, user_province=user_province, user_city=user_city, puid=user_puid)  # 入库
     insertdata.save()
     user.send(reply_text(wx_user))
