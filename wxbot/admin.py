@@ -13,7 +13,7 @@ class Group_user_show(admin.ModelAdmin):
 
 class Wx_account_show(admin.ModelAdmin):
     #显示字段
-    list_display = ('wx_name','use_time', 'friend_count','img_url','online')
+    list_display = ('wx_name','Welcome','use_time', 'friend_count','img_url','online')
     #指定列表过滤器,页面右边
     list_filter = ('wx_name',)
     # 指定要搜索的字段

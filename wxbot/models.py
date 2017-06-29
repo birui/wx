@@ -28,7 +28,7 @@ class Wx_account(models.Model):
     use_time = models.DateTimeField(auto_now_add = True)
     friend_count = models.IntegerField(blank=True,null=True,default=0)
     img_url = models.CharField(max_length=500)
-    #Welcome = models.TextField(blank=True, null=True)
+    Welcome = models.TextField(blank=True, null=True)
     #0下线 1上线
     online = models.IntegerField(blank=True,null=True)
     def __unicode__(self):
