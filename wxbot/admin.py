@@ -13,7 +13,7 @@ class Group_user_show(admin.ModelAdmin):
 
 class Wx_account_show(admin.ModelAdmin):
     #显示字段
-    list_display = ('wx_name','use_time', 'friend_count','img_url','Welcome','online')
+    list_display = ('wx_name','use_time', 'friend_count','img_url','online')
     #指定列表过滤器,页面右边
     list_filter = ('wx_name',)
     # 指定要搜索的字段
@@ -22,7 +22,7 @@ class Wx_account_show(admin.ModelAdmin):
 
 class Wx_group_show(admin.ModelAdmin):
     #显示字段
-    list_display = ('group_name','group_count', 'use_time','end_time','group_own','Welcome','online')
+    list_display = ('group_name','group_count', 'use_time','end_time','group_own','online')
     #指定列表过滤器,页面右边
     list_filter = ('group_name',)
     # 指定要搜索的字段
@@ -30,11 +30,11 @@ class Wx_group_show(admin.ModelAdmin):
 
 class Cron_msg_show(admin.ModelAdmin):
     #显示字段
-    list_display = ('msg_name','msg_group', 'msg_content','msg_type')
+    list_display = ('msg_group', 'msg_content' , 'msg_type' , 'order_id')
     #指定列表过滤器,页面右边
     list_filter = ('msg_group',)
     # 指定要搜索的字段
-    search_fields = ('msg_name', 'msg_group')
+    search_fields = ( 'msg_group',)
 
 admin.site.register(Wx_account,Wx_account_show)
 admin.site.register(Group_user,Group_user_show)

@@ -56,6 +56,7 @@ def get_time():
 '''
 机器人消息提醒设置
 '''
+# name换成
 group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
 logger = get_wechat_logger(group_receiver)
 logger.error(str("机器人登陆成功！" + get_time()))
@@ -115,8 +116,11 @@ def reply_text(wx_own):
 #     return msg_gw
 
 def group_Welcome(g_name):
-    group_Welcome = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
     id_list = []
+    try:
+        group_Welcome = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
+    except Exception as e:
+        group_Welcome = Cron_msg.objects.filter(msg_group='default').values('msg_content')
     for i in group_Welcome:
         id_list.append(i['msg_content'])
     return(random.choice(id_list))
@@ -159,7 +163,7 @@ def get_new_member_name(msg):
     msg_formatter(msg.raw, 'Text')
 
     for rp in rp_new_member_name:
-        match = rp.search(msg.text)
+        match = rp.search(logger)
         if match:
             return match.group(1)
 
@@ -262,7 +266,7 @@ def tick_18():
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
         if len(target_group()) >= 80:
-            notice_msg = Cron_msg.objects.filter(msg_group='tick_18').values('msg_content', 'msg_type').order_by('id')
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_18').values('msg_content', 'msg_type').order_by('order_id')
             # target_group().send('1.==>Tick! The time is: %s' % datetime.now())
             # target_group().send(notice_msg)
             # print(notice_msg)
@@ -286,7 +290,7 @@ def tick_19():
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
         #notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
-        notice_msg = Cron_msg.objects.filter(msg_group='tick_19').values('msg_content', 'msg_type').order_by('id')
+        notice_msg = Cron_msg.objects.filter(msg_group='tick_19').values('msg_content', 'msg_type').order_by('order_id')
         # target_group().send(notice_msg)
         for i in notice_msg:
             if i['msg_type'] == 'img':
@@ -302,13 +306,13 @@ scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='19', minute='00')
 scheduler_19.start()
 
 
-# 定时2： 到19：40若群有80人则记录群结束，并记录“结束时间”，并发送话术1，若不足80发送话术2并设置结束。
+# 定时2： 到19：40若群有80人则记录群结束，并记录“结束时间”，并发送话术1，若不足80发送话术2不设置结束。
 def tick_19_40():
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
         time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if len(target_group()) >= 80:
-            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_1').values('msg_content', 'msg_type').order_by('id')
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_1').values('msg_content', 'msg_type').order_by('order_id')
             for i in notice_msg:
                 if i['msg_type'] == 'img':
                     target_group().send_image(i['msg_content'])
@@ -316,15 +320,13 @@ def tick_19_40():
                     target_group().send(i['msg_content'])
             Wx_group.objects.filter(group_name=group_name(wx_user)).update(end_time=time_tamp)
         else:
-            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_2').values('msg_content', 'msg_type').order_by('id')
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_2').values('msg_content', 'msg_type').order_by('order_id')
             for i in notice_msg:
                 if i['msg_type'] == 'img':
                     target_group().send_image(i['msg_content'])
                     # print(i['msg_content'])
                 elif i['msg_type'] == 'txt':
                     target_group().send(i['msg_content'])
-            Wx_group.objects.filter(group_name=group_name(wx_user)).update(end_time=time_tamp)
-        # print(target_group(), datetime.now())
 
 
 scheduler_19_40 = BackgroundScheduler()
@@ -350,7 +352,7 @@ def tick_20_18():
             if int(local_timeStamp - end_timeStamp) >= 86400:
                 nu_dt = int(int(local_timeStamp - end_timeStamp) / 86400) - 1
                 if 0 <= nu_dt <= 18:
-                    end_msg = Cron_msg.objects.filter(msg_group='%dday' % nu_dt).values('msg_content', 'msg_type').order_by('id')
+                    end_msg = Cron_msg.objects.filter(msg_group='%dday' % nu_dt).values('msg_content', 'msg_type').order_by('order_id')
                     # print(end_msg[0]['msg_content'])
                     for i in end_msg:
                         if i['msg_type'] == 'img':
@@ -382,7 +384,7 @@ def auto_reply(msg):
         return
     else:
         # 回复消息内容和类型
-        # return '收到消息: {} ({})'.format(msg.text, msg.type)
+        # return '收到消息: {} ({})'.format(logger, msg.type)
         tuling.do_reply(msg)
 
 # target_group.send('Hello, WeChat!') 发送信息到群
