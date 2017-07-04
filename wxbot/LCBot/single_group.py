@@ -56,10 +56,10 @@ def get_time():
 '''
 机器人消息提醒设置
 '''
-# # name换成
-# group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
-# logger = get_wechat_logger(group_receiver)
-# logger.error(str("机器人登陆成功！" + get_time()))
+# name换成；group_name(wx_user)可以换成一个固定的群或者人
+group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
+logger = get_wechat_logger(group_receiver)
+logger.error(str("机器人登陆成功！" + get_time()))
 
 '''
 重启机器人
@@ -219,13 +219,19 @@ def send_msg(group_msg):
         last_time_dic = pickle.load(pkl_file)
         last_time = last_time_dic['last_time']
         count_users = Group_user.objects.filter(group_time__gt=time_tamp).count()
-
-        # print('======>', count_users, '=======', last_time)
         # 上次发公告以来如果有7个新人进群就再发一次公告
-        # print('send msg!!!===>{0}' .format(last_time))
-        if int(count_users) >= 7 and len(target_group()) >= 30:
-            print('send msg!!!!===>{0}' .format(last_time))
-            target_group().send('公告：{0}' .format(group_msg))  # 发送信息到群
+        # if int(count_users) >= 7 and len(target_group()) >= 30:#test
+        if int(count_users) >= 2 and len(target_group()) >= 10:
+            # print('send msg!!!!===>{0}' .format(last_time))
+            # notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
+            # target_group().send('公告：{0}' .format(group_msg))
+            # 发送公告信息到群
+            notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content', 'msg_type').order_by('order_id')
+            for i in notice_msg:
+                if i['msg_type'] == 'img':
+                    target_group().send_image(i['msg_content'])
+                elif i['msg_type'] == 'txt':
+                    target_group().send(i['msg_content'])
             # 发完公告改时间
             last_time['last_time'] = time_tamp
             pickle.dump(last_time, pkl_file)
@@ -256,14 +262,11 @@ def welcome(msg):
         # 1.如果达到60人一个群则自动建群
         # 2.如果新人达到7个就发一次公告
         try:
-            notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
-            # 发送欢迎信息
-            for i in notice_msg:
-                send_msg(i['notice_msg'])
+            # 发送公告信息
+            send_msg()
         except Exception as e:
             print('new_user_7 出错!! %s' % e)
-
-        print(welcome_text())
+        # 发送公告信息
         return welcome_text().format(name)
 
 # 定时任务
@@ -275,7 +278,8 @@ def tick_18():
     # print('tick_18')
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
-        if len(target_group()) >= 80:
+        # if len(target_group()) >= 50:
+        if len(target_group()) >= 10:  # test
             notice_msg = Cron_msg.objects.filter(msg_group='tick_18').values('msg_content', 'msg_type').order_by('order_id')
             # target_group().send('1.==>Tick! The time is: %s' % datetime.now())
             # target_group().send(notice_msg)
@@ -290,8 +294,8 @@ def tick_18():
 
 
 scheduler_18 = BackgroundScheduler()
-scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', hour='18', minute='00')
-# scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', minute='*/1')
+# scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', hour='18', minute='00')
+scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', minute='*/5')  # test
 scheduler_18.start()
 # 19点发送话术2
 
