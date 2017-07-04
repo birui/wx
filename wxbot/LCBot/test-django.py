@@ -164,4 +164,15 @@ def welcome_text():
     #     print(i['msg_content'])
 
 
-welcome_text()
+def send_msg():
+    # 上次发公告时间,
+    time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    if os.path.exists('last_time.pkl'):
+        pkl_file = open('last_time.pkl', 'rb')
+        last_time_dic = pickle.load(pkl_file)
+        last_time = last_time_dic['last_time']
+        count_users = Group_user.objects.filter(group_time__gt=time_tamp).count()
+        print(count_users)
+
+
+send_msg()

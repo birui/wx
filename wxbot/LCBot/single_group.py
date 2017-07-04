@@ -146,7 +146,7 @@ def target_group():
     if len(target_group_1) >= 100:
         insertdata = Wx_group(online=0)
         insertdata.save()
-    print('target_group_1:', target_group_1)
+    # print('target_group_1:', target_group_1)
     return target_group_1
 
 
@@ -218,9 +218,10 @@ def send_msg():
         pkl_file = open('last_time.pkl', 'rb')
         last_time_dic = pickle.load(pkl_file)
         last_time = last_time_dic['last_time']
-        count_users = Group_user.objects.filter(group_time__gt=time_tamp).count()
+        count_users = Group_user.objects.filter(group_time__gt=last_time).count()
         # 上次发公告以来如果有7个新人进群就再发一次公告
         # if int(count_users) >= 7 and len(target_group()) >= 30:#test
+        print(count_users, last_time)
         if int(count_users) >= 2 and len(target_group()) >= 10:
             # print('send msg!!!!===>{0}' .format(last_time))
             # notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
@@ -275,7 +276,7 @@ def welcome(msg):
 
 
 def tick_18():
-    # print('tick_18')
+    print('tick_18')
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
     if end_time[0]['end_time'] is None:
         # if len(target_group()) >= 50:
