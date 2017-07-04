@@ -158,7 +158,10 @@ def group_Welcome(g_name):
 
 def welcome_text():
     welcome_t = group_Welcome(group_name('Enchanting'))
-    print(welcome_t)
+    test = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
+    print(test['msg_content'])
+    # for i in test:
+    #     print(i['msg_content'])
 
 
 welcome_text()

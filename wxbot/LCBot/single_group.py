@@ -56,10 +56,10 @@ def get_time():
 '''
 机器人消息提醒设置
 '''
-# name换成
-group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
-logger = get_wechat_logger(group_receiver)
-logger.error(str("机器人登陆成功！" + get_time()))
+# # name换成
+# group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
+# logger = get_wechat_logger(group_receiver)
+# logger.error(str("机器人登陆成功！" + get_time()))
 
 '''
 重启机器人
@@ -137,6 +137,8 @@ def welcome_text():
 print(bot.groups())
 # target_group = bot.groups().search(group_name(wx_user))[0]
 
+# 群名
+
 
 def target_group():
     target_group_1 = bot.groups().search(group_name(wx_user))[0]
@@ -144,10 +146,11 @@ def target_group():
     if len(target_group_1) >= 100:
         insertdata = Wx_group(online=0)
         insertdata.save()
-    # print('target_group_1:', target_group_1)
+    print('target_group_1:', target_group_1)
     return target_group_1
 
 
+target_group()
 # 群成员个数
 print(len(target_group()))
 
@@ -163,7 +166,8 @@ def get_new_member_name(msg):
     msg_formatter(msg.raw, 'Text')
 
     for rp in rp_new_member_name:
-        match = rp.search(logger)
+        # match = rp.search(logger)
+        match = rp.search(msg.text)
         if match:
             return match.group(1)
 
@@ -242,6 +246,7 @@ def welcome(msg):
     my_friend = bot.friends().search(name)[0]
     puid_nu = my_friend.puid
     time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    print(name, puid_nu)
     if name:
         # 将刚刚入群的用户添加到数据库
         group_owner = str(bot)[6:-1]
@@ -250,9 +255,15 @@ def welcome(msg):
 
         # 1.如果达到60人一个群则自动建群
         # 2.如果新人达到7个就发一次公告
-        notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
-        # 发送欢迎信息
-        send_msg(notice_msg)
+        try:
+            notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
+            # 发送欢迎信息
+            for i in notice_msg:
+                send_msg(i['notice_msg'])
+        except Exception as e:
+            print('new_user_7 出错!! %s' % e)
+
+        print(welcome_text())
         return welcome_text().format(name)
 
 # 定时任务
