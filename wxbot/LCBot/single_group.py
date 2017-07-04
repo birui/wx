@@ -118,10 +118,10 @@ def reply_text(wx_own):
 def group_Welcome(g_name):
     id_list = []
     try:
-        group_Welcome_msg = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
+        group_welcome_msg = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
     except Exception as e:
-        group_Welcome_msg = Cron_msg.objects.filter(msg_group='default').values('msg_content')
-    for i in group_Welcome_msg:
+        group_welcome_msg = Cron_msg.objects.filter(msg_group='default').values('msg_content')
+    for i in group_welcome_msg:
         id_list.append(i['msg_content'])
     return(random.choice(id_list))
 
@@ -250,10 +250,9 @@ def welcome(msg):
 
         # 1.如果达到60人一个群则自动建群
         # 2.如果新人达到7个就发一次公告
-        notice_msg = Cron_msg.objects.filter(msg_name='new_user_7', msg_group='group_notice').values('msg_content')
-        send_msg(notice_msg)
-
+        notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
         # 发送欢迎信息
+        send_msg(notice_msg)
         return welcome_text().format(name)
 
 # 定时任务

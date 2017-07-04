@@ -88,7 +88,7 @@ def group_name(own):
     on_g = Wx_group.objects.filter(group_own=own, online=1).values('group_name')
     for i in on_g:
         on_g_n = i['group_name']
-        print('group_name:', on_g_n)
+        # print('group_name:', on_g_n)
     return on_g_n
 
 
@@ -141,4 +141,24 @@ def wx_img_turn():
     print(count_users, wx_210)
 
 
-wx_img_turn()
+def group_Welcome(g_name):
+    id_list = []
+    try:
+        group_Welcome_msg = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
+    except Exception as e:
+        group_Welcome_msg = Cron_msg.objects.filter(msg_group='default').values('msg_content')
+    for i in group_Welcome_msg:
+        id_list.append(i['msg_content'])
+        # print(i)
+    return(random.choice(id_list))
+
+
+# welcome_text = group_Welcome(group_name(wx_user))
+
+
+def welcome_text():
+    welcome_t = group_Welcome(group_name('Enchanting'))
+    print(welcome_t)
+
+
+welcome_text()
