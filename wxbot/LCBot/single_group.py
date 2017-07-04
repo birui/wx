@@ -211,7 +211,7 @@ def new_friends(msg):
 
 
 @bot.register(target_group(), NOTE)
-def send_msg(group_msg):
+def send_msg():
     # 上次发公告时间
     time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     if os.path.exists('last_time.pkl'):
