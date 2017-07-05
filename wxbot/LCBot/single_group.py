@@ -278,6 +278,7 @@ def welcome(msg):
 def tick_18():
     print('tick_18')
     end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+    # 注意群是未结束状态
     if end_time[0]['end_time'] is None:
         # if len(target_group()) >= 50:
         if len(target_group()) >= 10:  # test
@@ -295,8 +296,8 @@ def tick_18():
 
 
 scheduler_18 = BackgroundScheduler()
-# scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', hour='18', minute='00')
-scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', minute='*/5')  # test
+scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', hour='18', minute='00')
+# scheduler_18.add_job(tick_18, 'cron', day_of_week='0-6', minute='*/5')  # test
 scheduler_18.start()
 # 19点发送话术2
 
@@ -316,8 +317,8 @@ def tick_19():
 
 
 scheduler_19 = BackgroundScheduler()
-scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='19', minute='00')
-# scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', minute='*/1')
+# scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='19', minute='00')
+scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', minute='*/5')
 scheduler_19.start()
 
 
@@ -345,8 +346,8 @@ def tick_19_40():
 
 
 scheduler_19_40 = BackgroundScheduler()
-scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', hour='19', minute='40')
-# scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', minute='*/1')
+# scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', hour='19', minute='40')
+scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', minute='*/6')
 scheduler_19_40.start()
 
 # 定时3：群结束后，每天8点发推送连续18天
@@ -381,8 +382,8 @@ def tick_20_18():
 
 
 scheduler_20_18 = BackgroundScheduler()
-scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='20', minute='00')
-# scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', minute='*/1')
+# scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='20', minute='00')
+scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', minute='*/7')
 scheduler_20_18.start()
 
 
