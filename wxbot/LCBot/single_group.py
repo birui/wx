@@ -221,20 +221,17 @@ def send_msg():
             last_time = last_time_dic['last_time']
             count_users = Group_user.objects.filter(group_time__gt=last_time).count()
             # 上次发公告以来如果有7个新人进群就再发一次公告
-            # if int(count_users) >= 7 and len(target_group()) >= 30:#test
-            print(count_users, last_time)
-            if int(count_users) >= 1 and len(target_group()) >= 10:
-                # print('send msg!!!!===>{0}' .format(last_time))
-                # notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
-                # target_group().send('公告：{0}' .format(group_msg))
+            if int(count_users) >= 7 and len(target_group()) >= 30:
+                # print(count_users, last_time)
+                # if int(count_users) >= 1 and len(target_group()) >= 10:  # test
                 # 发送公告信息到群
                 notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content', 'msg_type').order_by('order_id')
                 for i in notice_msg:
                     if i['msg_type'] == 'img':
-                        print(i)
+                        # print(i)
                         target_group().send_image(i['msg_content'])
                     elif i['msg_type'] == 'txt':
-                        print(i)
+                        # print(i)
                         target_group().send(i['msg_content'])
                 # 发完公告改时间
                 last_time['last_time'] = time_tamp
@@ -333,8 +330,8 @@ def tick_19():
 
 
 scheduler_19 = BackgroundScheduler()
-# scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='19', minute='00')
-scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', minute='*/5')
+scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', hour='19', minute='00')
+# scheduler_19.add_job(tick_19, 'cron', day_of_week='0-6', minute='*/5')
 scheduler_19.start()
 
 
@@ -365,8 +362,8 @@ def tick_19_40():
 
 
 scheduler_19_40 = BackgroundScheduler()
-# scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', hour='19', minute='40')
-scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', minute='*/6')
+scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', hour='19', minute='40')
+# scheduler_19_40.add_job(tick_19_40, 'cron', day_of_week='0-6', minute='*/6')
 scheduler_19_40.start()
 
 # 定时3：群结束后，每天8点发推送连续18天
@@ -401,8 +398,8 @@ def tick_20_18():
 
 
 scheduler_20_18 = BackgroundScheduler()
-# scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='20', minute='00')
-scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', minute='*/7')
+scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', hour='20', minute='00')
+# scheduler_20_18.add_job(tick_20_18, 'cron', day_of_week='0-6', minute='*/7')
 scheduler_20_18.start()
 
 
