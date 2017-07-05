@@ -57,9 +57,9 @@ def get_time():
 机器人消息提醒设置
 '''
 # name换成；group_name(wx_user)可以换成一个固定的群或者人
-group_receiver = ensure_one(bot.groups().search(group_name(wx_user)))
+group_receiver = ensure_one(bot.groups().search('error'))
 logger = get_wechat_logger(group_receiver)
-logger.error(str("机器人登陆成功！" + get_time()))
+logger.error(str("机器人%s登陆成功！" % (wx_user) + get_time()))
 
 '''
 重启机器人
@@ -316,7 +316,7 @@ def tick_19():
     try:
         end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
         if end_time[0]['end_time'] is None:
-            #notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
+            # notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
             notice_msg = Cron_msg.objects.filter(msg_group='tick_19').values('msg_content', 'msg_type').order_by('order_id')
             # target_group().send(notice_msg)
             for i in notice_msg:
