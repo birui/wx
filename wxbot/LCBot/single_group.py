@@ -354,9 +354,9 @@ scheduler_19_40.start()
 
 
 def tick_20_18():
-    try:
-        end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
-        if end_time is not None:
+    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+    if end_time is not None:
+        try:
             end_time_str = str(end_time[0]['end_time'])
             end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
             end_timeStamp = int(time.mktime(end_timeArray))
@@ -377,8 +377,8 @@ def tick_20_18():
                         elif i['msg_type'] == 'txt':
                             target_group().send(i['msg_content'])
                     # target_group().send(end_msg[0]['msg_content'])
-    except Exception as e:
-        print('出错了!! %s' % e)
+        except Exception as e:
+            print('出错了!! %s' % e)
 
 
 scheduler_20_18 = BackgroundScheduler()

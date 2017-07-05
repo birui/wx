@@ -166,13 +166,8 @@ def welcome_text():
 
 def send_msg():
     # 上次发公告时间,
-    time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    if os.path.exists('last_time.pkl'):
-        pkl_file = open('last_time.pkl', 'rb')
-        last_time_dic = pickle.load(pkl_file)
-        last_time = last_time_dic['last_time']
-        count_users = Group_user.objects.filter(group_time__gt=time_tamp).count()
-        print(count_users)
+    end_time = Wx_group.objects.filter(group_name=group_name('Enchanting')).values('end_time')
+    print(end_time)
 
 
 send_msg()
