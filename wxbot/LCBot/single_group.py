@@ -385,8 +385,8 @@ def tick_20_18():
                         elif i['msg_type'] == 'txt':
                             target_group().send(i['msg_content'])
                     # target_group().send(end_msg[0]['msg_content'])
-        except Exception as e:
-            print('tick_20_18 出错了!! %s' % e)
+    except Exception as e:
+        print('tick_20_18 出错了!! %s' % e)
 
 
 scheduler_20_18 = BackgroundScheduler()
