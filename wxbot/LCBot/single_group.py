@@ -276,7 +276,7 @@ def welcome(msg):
         except Exception as e:
             print('new_user_7 出错!! %s' % e)
 
-        time.sleep(2)
+        # time.sleep(2)
         # 发送公告信息
         return welcome_text().format(name)
 
