@@ -164,10 +164,33 @@ def welcome_text():
     #     print(i['msg_content'])
 
 
-def send_msg():
-    # 上次发公告时间,
+def tick_20_18():
     end_time = Wx_group.objects.filter(group_name=group_name('Enchanting')).values('end_time')
     print(end_time)
+    if end_time[0]['end_time'] is not None:
+        try:
+            end_time_str = str(end_time[0]['end_time'])
+            end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+            end_timeStamp = int(time.mktime(end_timeArray))
+
+            local_time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            local_timeArray = time.strptime(local_time_tamp, "%Y-%m-%d %H:%M:%S")
+            local_timeStamp = int(time.mktime(local_timeArray))
+
+            if int(local_timeStamp - end_timeStamp) >= 86400:
+                nu_dt = int(int(local_timeStamp - end_timeStamp) / 86400) - 1
+                if 0 <= nu_dt <= 18:
+                    end_msg = Cron_msg.objects.filter(msg_group='%dday' % nu_dt).values('msg_content', 'msg_type').order_by('order_id')
+                    # print(end_msg[0]['msg_content'])
+                    for i in end_msg:
+                        if i['msg_type'] == 'img':
+                            target_group().send_image(i['msg_content'])
+                            # print(i['msg_content'])
+                        elif i['msg_type'] == 'txt':
+                            target_group().send(i['msg_content'])
+                    # target_group().send(end_msg[0]['msg_content'])
+        except Exception as e:
+            print('出错了!! %s' % e)
 
 
-send_msg()
+tick_20_18()

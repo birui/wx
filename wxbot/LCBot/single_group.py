@@ -276,23 +276,25 @@ def welcome(msg):
 
 
 def tick_18():
-    print('tick_18')
-    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
-    # 注意群是未结束状态
-    if end_time[0]['end_time'] is None:
-        # if len(target_group()) >= 50:
-        if len(target_group()) >= 10:  # test
-            notice_msg = Cron_msg.objects.filter(msg_group='tick_18').values('msg_content', 'msg_type').order_by('order_id')
-            # target_group().send('1.==>Tick! The time is: %s' % datetime.now())
-            # target_group().send(notice_msg)
-            # print(notice_msg)
-            for i in notice_msg:
-                if i['msg_type'] == 'img':
-                    target_group().send_image(i['msg_content'])
-                    # print(i['msg_content'])
-                elif i['msg_type'] == 'txt':
-                    target_group().send(i['msg_content'])
-                    # print(i['msg_content'])
+    try:
+        end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+        # 注意群是未结束状态
+        if end_time[0]['end_time'] is None:
+            # if len(target_group()) >= 50:
+            if len(target_group()) >= 10:  # test
+                notice_msg = Cron_msg.objects.filter(msg_group='tick_18').values('msg_content', 'msg_type').order_by('order_id')
+                # target_group().send('1.==>Tick! The time is: %s' % datetime.now())
+                # target_group().send(notice_msg)
+                # print(notice_msg)
+                for i in notice_msg:
+                    if i['msg_type'] == 'img':
+                        target_group().send_image(i['msg_content'])
+                        # print(i['msg_content'])
+                    elif i['msg_type'] == 'txt':
+                        target_group().send(i['msg_content'])
+                        # print(i['msg_content'])
+    except Exception as e:
+        print('tick_18 出错了!! %s' % e)
 
 
 scheduler_18 = BackgroundScheduler()
@@ -303,17 +305,20 @@ scheduler_18.start()
 
 
 def tick_19():
-    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
-    if end_time[0]['end_time'] is None:
-        #notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
-        notice_msg = Cron_msg.objects.filter(msg_group='tick_19').values('msg_content', 'msg_type').order_by('order_id')
-        # target_group().send(notice_msg)
-        for i in notice_msg:
-            if i['msg_type'] == 'img':
-                target_group().send_image(i['msg_content'])
-                # print(i['msg_content'])
-            elif i['msg_type'] == 'txt':
-                target_group().send(i['msg_content'])
+    try:
+        end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+        if end_time[0]['end_time'] is None:
+            #notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
+            notice_msg = Cron_msg.objects.filter(msg_group='tick_19').values('msg_content', 'msg_type').order_by('order_id')
+            # target_group().send(notice_msg)
+            for i in notice_msg:
+                if i['msg_type'] == 'img':
+                    target_group().send_image(i['msg_content'])
+                    # print(i['msg_content'])
+                elif i['msg_type'] == 'txt':
+                    target_group().send(i['msg_content'])
+    except Exception as e:
+        print('tick_19 出错了!! %s' % e)
 
 
 scheduler_19 = BackgroundScheduler()
@@ -324,25 +329,28 @@ scheduler_19.start()
 
 # 定时2： 到19：40若群有80人则记录群结束，并记录“结束时间”，并发送话术1，若不足80发送话术2不设置结束。
 def tick_19_40():
-    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
-    if end_time[0]['end_time'] is None:
-        time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        if len(target_group()) >= 80:
-            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_1').values('msg_content', 'msg_type').order_by('order_id')
-            for i in notice_msg:
-                if i['msg_type'] == 'img':
-                    target_group().send_image(i['msg_content'])
-                elif i['msg_type'] == 'txt':
-                    target_group().send(i['msg_content'])
-            Wx_group.objects.filter(group_name=group_name(wx_user)).update(end_time=time_tamp)
-        else:
-            notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_2').values('msg_content', 'msg_type').order_by('order_id')
-            for i in notice_msg:
-                if i['msg_type'] == 'img':
-                    target_group().send_image(i['msg_content'])
-                    # print(i['msg_content'])
-                elif i['msg_type'] == 'txt':
-                    target_group().send(i['msg_content'])
+    try:
+        end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+        if end_time[0]['end_time'] is None:
+            time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            if len(target_group()) >= 80:
+                notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_1').values('msg_content', 'msg_type').order_by('order_id')
+                for i in notice_msg:
+                    if i['msg_type'] == 'img':
+                        target_group().send_image(i['msg_content'])
+                    elif i['msg_type'] == 'txt':
+                        target_group().send(i['msg_content'])
+                Wx_group.objects.filter(group_name=group_name(wx_user)).update(end_time=time_tamp)
+            else:
+                notice_msg = Cron_msg.objects.filter(msg_group='tick_19_40_2').values('msg_content', 'msg_type').order_by('order_id')
+                for i in notice_msg:
+                    if i['msg_type'] == 'img':
+                        target_group().send_image(i['msg_content'])
+                        # print(i['msg_content'])
+                    elif i['msg_type'] == 'txt':
+                        target_group().send(i['msg_content'])
+    except Exception as e:
+        print('tick_19_40 出错了!! %s' % e)
 
 
 scheduler_19_40 = BackgroundScheduler()
@@ -354,9 +362,9 @@ scheduler_19_40.start()
 
 
 def tick_20_18():
-    end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
-    if end_time is not None:
-        try:
+    try:
+        end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
+        if end_time[0]['end_time'] is not None:
             end_time_str = str(end_time[0]['end_time'])
             end_timeArray = time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
             end_timeStamp = int(time.mktime(end_timeArray))
@@ -378,7 +386,7 @@ def tick_20_18():
                             target_group().send(i['msg_content'])
                     # target_group().send(end_msg[0]['msg_content'])
         except Exception as e:
-            print('出错了!! %s' % e)
+            print('tick_20_18 出错了!! %s' % e)
 
 
 scheduler_20_18 = BackgroundScheduler()
