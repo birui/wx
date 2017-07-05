@@ -212,39 +212,45 @@ def new_friends(msg):
 
 @bot.register(target_group(), NOTE)
 def send_msg():
-    # 上次发公告时间,
-    time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    if os.path.exists('last_time.pkl'):
-        pkl_file = open('last_time.pkl', 'rb')
-        last_time_dic = pickle.load(pkl_file)
-        last_time = last_time_dic['last_time']
-        count_users = Group_user.objects.filter(group_time__gt=last_time).count()
-        # 上次发公告以来如果有7个新人进群就再发一次公告
-        # if int(count_users) >= 7 and len(target_group()) >= 30:#test
-        print(count_users, last_time)
-        if int(count_users) >= 1 and len(target_group()) >= 10:
-            # print('send msg!!!!===>{0}' .format(last_time))
-            # notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
-            # target_group().send('公告：{0}' .format(group_msg))
-            # 发送公告信息到群
-            notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content', 'msg_type').order_by('order_id')
-            for i in notice_msg:
-                if i['msg_type'] == 'img':
-                    print(i)
-                    target_group().send_image(i['msg_content'])
-                elif i['msg_type'] == 'txt':
-                    print(i)
-                    target_group().send(i['msg_content'])
-            # 发完公告改时间
-            last_time['last_time'] = time_tamp
+    try:
+        # 上次发公告时间,
+        time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        if os.path.exists('last_time.pkl'):
+            pkl_file = open('last_time.pkl', 'rb')
+            last_time_dic = pickle.load(pkl_file)
+            last_time = last_time_dic['last_time']
+            count_users = Group_user.objects.filter(group_time__gt=last_time).count()
+            # 上次发公告以来如果有7个新人进群就再发一次公告
+            # if int(count_users) >= 7 and len(target_group()) >= 30:#test
+            print(count_users, last_time)
+            if int(count_users) >= 1 and len(target_group()) >= 10:
+                # print('send msg!!!!===>{0}' .format(last_time))
+                # notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
+                # target_group().send('公告：{0}' .format(group_msg))
+                # 发送公告信息到群
+                notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content', 'msg_type').order_by('order_id')
+                for i in notice_msg:
+                    if i['msg_type'] == 'img':
+                        print(i)
+                        target_group().send_image(i['msg_content'])
+                    elif i['msg_type'] == 'txt':
+                        print(i)
+                        target_group().send(i['msg_content'])
+                # 发完公告改时间
+                last_time['last_time'] = time_tamp
+                pickle.dump(last_time, pkl_file)
+
+        else:
+            last_time = {'last_time': time_tamp}
+            pkl_file = open('last_time.pkl', 'wb')
             pickle.dump(last_time, pkl_file)
 
-    else:
-        last_time = {'last_time': time_tamp}
-        pkl_file = open('last_time.pkl', 'wb')
-        pickle.dump(last_time, pkl_file)
+        pkl_file.close()
 
-    pkl_file.close()
+    except Exception as e:
+        print('send_msg 出错!! %s' % e)
+        pkl_file.close()
+
 
 # 欢迎进群
 
@@ -264,14 +270,15 @@ def welcome(msg):
 
         # 1.如果达到60人一个群则自动建群
         # 2.如果新人达到7个就发一次公告
-        welcome_text().format(name)
         try:
             # 发送公告信息
             send_msg()
         except Exception as e:
             print('new_user_7 出错!! %s' % e)
+
+        time.sleep(2)
         # 发送公告信息
-        # return welcome_text().format(name)
+        return welcome_text().format(name)
 
 
 ''' 定时任务 '''
