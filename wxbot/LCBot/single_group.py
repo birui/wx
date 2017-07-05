@@ -222,7 +222,7 @@ def send_msg():
         # 上次发公告以来如果有7个新人进群就再发一次公告
         # if int(count_users) >= 7 and len(target_group()) >= 30:#test
         print(count_users, last_time)
-        if int(count_users) >= 2 and len(target_group()) >= 10:
+        if int(count_users) >= 1 and len(target_group()) >= 10:
             # print('send msg!!!!===>{0}' .format(last_time))
             # notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content')
             # target_group().send('公告：{0}' .format(group_msg))
@@ -230,8 +230,10 @@ def send_msg():
             notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content', 'msg_type').order_by('order_id')
             for i in notice_msg:
                 if i['msg_type'] == 'img':
+                    print(i)
                     target_group().send_image(i['msg_content'])
                 elif i['msg_type'] == 'txt':
+                    print(i)
                     target_group().send(i['msg_content'])
             # 发完公告改时间
             last_time['last_time'] = time_tamp
@@ -262,15 +264,17 @@ def welcome(msg):
 
         # 1.如果达到60人一个群则自动建群
         # 2.如果新人达到7个就发一次公告
+        welcome_text().format(name)
         try:
             # 发送公告信息
             send_msg()
         except Exception as e:
             print('new_user_7 出错!! %s' % e)
         # 发送公告信息
-        return welcome_text().format(name)
+        # return welcome_text().format(name)
 
-# 定时任务
+
+''' 定时任务 '''
 
 # 定时1： 18点人群大于50发送话术1，19点发送话术2 #如果不到50人？
 
