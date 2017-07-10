@@ -20,9 +20,40 @@ from wxbot.models import *
 from wxpy import *
 import re
 from wxpy.utils import start_new_thread
+'''log配置'''
+import logging
+# 创建一个logger
+loggers = logging.getLogger('mylogger')
+loggers.setLevel(logging.DEBUG)
+
+# 创建一个handler，用于写入日志文件
+fh = logging.FileHandler('test.log')
+fh.setLevel(logging.DEBUG)
+
+# 再创建一个handler，用于输出到控制台
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# 定义handler的输出格式
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+
+# 给logger添加handler
+loggers.addHandler(fh)
+loggers.addHandler(ch)
 
 # False
 bot = Bot('bot.pkl', console_qr=False)
+
+''' mysql重连 '''
+from django.db import connections
+
+
+def close_old_connections():
+    for conn in connections.all():
+        conn.close_if_unusable_or_obsolete()
+
 
 '''
 开启 PUID 用于后续的控制
@@ -38,6 +69,7 @@ print(wx_user)
 
 def group_name(own):
     # 无结束时间且在线的群（在线=少于100）
+    close_old_connections()
     on_g = Wx_group.objects.filter(group_own=own, online=1).values('group_name')
     for i in on_g:
         on_g_n = i['group_name']
@@ -82,6 +114,7 @@ def heartbeat():
         try:
             logger.error(get_time() + " 机器人目前在线,共有好友 【" + str(len(bot.friends())) + "】 群 【 " + str(len(bot.groups())) + "】")
         except ResponseError as e:
+            logger.info('heartbeat,机器人退出 %s' % e)
             if 1100 <= e.err_code <= 1102:
                 logger.critical('LCBot offline: {}'.format(e))
                 _restart()
@@ -96,6 +129,7 @@ start_new_thread(heartbeat)
 
 
 def reply_text(wx_own):
+    close_old_connections()
     user_msg = Wx_account.objects.filter(wx_name=wx_own).values('Welcome')
     for i in user_msg:
         u_msg_v = i['Welcome']
@@ -118,8 +152,11 @@ def reply_text(wx_own):
 def group_Welcome(g_name):
     id_list = []
     try:
+        close_old_connections()
         group_welcome_msg = Cron_msg.objects.filter(msg_group=g_name).values('msg_content')
     except Exception as e:
+        logger.info('机器人退出 %s' % e)
+        close_old_connections()
         group_welcome_msg = Cron_msg.objects.filter(msg_group='default').values('msg_content')
     for i in group_welcome_msg:
         id_list.append(i['msg_content'])
@@ -195,6 +232,7 @@ rp_new_member_name = (
 def new_friends(msg):
     group_owner = bot
     user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
+    user.send(reply_text(wx_user))  # 发送邀请信息
     target_group().add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
     user_data = str(user)[9:-1].replace('\r', '').replace('\n', '').replace('\t', '').replace(' ', '')
     user_sex = user.sex
@@ -205,7 +243,6 @@ def new_friends(msg):
     # print(user_puid)
     insertdata = Group_user(user_name=user_data, user_sex=user_sex, user_province=user_province, user_city=user_city, puid=user_puid)  # 入库
     insertdata.save()
-    user.send(reply_text(wx_user))
 
 # 加群
 
@@ -219,12 +256,14 @@ def send_msg():
             pkl_file = open('last_time.pkl', 'rb')
             last_time_dic = pickle.load(pkl_file)
             last_time = last_time_dic['last_time']
+            close_old_connections()
             count_users = Group_user.objects.filter(group_time__gt=last_time).count()
             # 上次发公告以来如果有7个新人进群就再发一次公告
             if int(count_users) >= 7 and len(target_group()) >= 30:
                 # print(count_users, last_time)
                 # if int(count_users) >= 1 and len(target_group()) >= 10:  # test
                 # 发送公告信息到群
+                close_old_connections()
                 notice_msg = Cron_msg.objects.filter(msg_group='new_user_7').values('msg_content', 'msg_type').order_by('order_id')
                 for i in notice_msg:
                     if i['msg_type'] == 'img':
@@ -245,6 +284,7 @@ def send_msg():
         pkl_file.close()
 
     except Exception as e:
+        logger.info('send_msg 出错，机器人退出 %s' % e)
         print('send_msg 出错!! %s' % e)
         pkl_file.close()
 
@@ -263,6 +303,7 @@ def welcome(msg):
         # 将刚刚入群的用户添加到数据库
         group_owner = str(bot)[6:-1]
         # group_name = group_name(wx_user)
+        close_old_connections()
         Group_user.objects.filter(puid=puid_nu).update(group_name=group_name(wx_user), group_own=group_owner, group_time=time_tamp)
 
         # 1.如果达到60人一个群则自动建群
@@ -271,6 +312,7 @@ def welcome(msg):
             # 发送公告信息
             send_msg()
         except Exception as e:
+            logger.info('new_user_7 出错，机器人退出 %s' % e)
             print('new_user_7 出错!! %s' % e)
 
         # time.sleep(2)
@@ -285,6 +327,7 @@ def welcome(msg):
 
 def tick_18():
     try:
+        close_old_connections()
         end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
         # 注意群是未结束状态
         if end_time[0]['end_time'] is None:
@@ -302,6 +345,7 @@ def tick_18():
                         target_group().send(i['msg_content'])
                         # print(i['msg_content'])
     except Exception as e:
+        logger.info('tick_18,机器人退出 %s' % e)
         print('tick_18 出错了!! %s' % e)
 
 
@@ -314,6 +358,7 @@ scheduler_18.start()
 
 def tick_19():
     try:
+        close_old_connections()
         end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
         if end_time[0]['end_time'] is None:
             # notice_msg = Cron_msg.objects.filter(msg_name='tick_19', msg_group='cron').values('msg_content')
@@ -326,6 +371,7 @@ def tick_19():
                 elif i['msg_type'] == 'txt':
                     target_group().send(i['msg_content'])
     except Exception as e:
+        logger.info('tick_19,机器人退出 %s' % e)
         print('tick_19 出错了!! %s' % e)
 
 
@@ -338,6 +384,7 @@ scheduler_19.start()
 # 定时2： 到19：40若群有80人则记录群结束，并记录“结束时间”，并发送话术1，若不足80发送话术2不设置结束。
 def tick_19_40():
     try:
+        close_old_connections()
         end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
         if end_time[0]['end_time'] is None:
             time_tamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -358,6 +405,7 @@ def tick_19_40():
                     elif i['msg_type'] == 'txt':
                         target_group().send(i['msg_content'])
     except Exception as e:
+        logger.info('tick_19_40,机器人退出 %s' % e)
         print('tick_19_40 出错了!! %s' % e)
 
 
@@ -371,6 +419,7 @@ scheduler_19_40.start()
 
 def tick_20_18():
     try:
+        close_old_connections()
         end_time = Wx_group.objects.filter(group_name=group_name(wx_user)).values('end_time')
         if end_time[0]['end_time'] is not None:
             end_time_str = str(end_time[0]['end_time'])
@@ -394,6 +443,7 @@ def tick_20_18():
                             target_group().send(i['msg_content'])
                     # target_group().send(end_msg[0]['msg_content'])
     except Exception as e:
+        logger.info('tick_20_18,机器人退出 %s' % e)
         print('tick_20_18 出错了!! %s' % e)
 
 
@@ -420,22 +470,6 @@ def auto_reply(msg):
         tuling.do_reply(msg)
 
 # target_group.send('Hello, WeChat!') 发送信息到群
-
-#======多开=====
-
-#
-# @bot2.register(msg_types=FRIENDS)  # 注册好友请求消息
-# def new_friends(msg):
-#     user = msg.card.accept()  # 接受好友 (msg.card 为该请求的用户对象)
-#     target_group.add_members(user, use_invitation=True)  # user是要加入的用户，use_invitation – 使用发送邀请的方式
-#     user.send(reply_text)
-#
-#
-# @bot2.register(target_group, NOTE)
-# def welcome(msg):
-#     name = get_new_member_name(msg)
-#     if name:
-#         return welcome_text.format(name)
 
 
 embed()
