@@ -13,5 +13,5 @@ pytz==2017.2
 requests==2.17.3
 six==1.10.0
 tzlocal==1.4
-urllib3==1.21.1
+urllib3==1.26.5
 wxpy==0.3.9.6
