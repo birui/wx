@@ -1,0 +1,46 @@
+{
+	"attributes":[
+		{
+			"trait_type":"性格",
+			"value": "内向腼腆"
+		},
+		{
+			"trait_type":"智商",
+			"value":"普通人"
+		},
+		{
+			"trait_type":"颜值",
+			"value":"彭于晏身材"
+		},
+		{
+			"trait_type":"爱好",
+			"value":"炒币泡妞"
+		},
+		{
+			"trait_type":"发型",
+			"value":"长发"
+		},
+		{
+			"trait_type":"油管级别",
+			"value":5
+		},
+		{
+			"trait_type":"靠谱值",
+			"value":99
+		},
+		{
+			"display_type":"boost_number",
+			"trait_type":"生日",
+			"value":"普通人"
+		},
+		{
+			"display_type":"boost_percentage",
+			"trait_type":"幸福值",
+			"value":100
+		},
+	],
+	"description":"测试nft，谢谢支持！",
+	"external_url": "https://twitter.com/br9852000",
+	"image": "https://pbs.twimg.com/profile_images/839141252335460352/4fF8DdU__400x400.jpg",
+	"name": "老毕"
+}
